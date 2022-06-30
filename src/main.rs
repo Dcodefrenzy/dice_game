@@ -1,6 +1,19 @@
 use std::io;
 use rand::Rng;
 
+#[derive(Debug)]
+enum Winner {
+    USER,
+    COMPUTER,
+    DRAW
+}
+#[derive(Debug)]
+struct Result {
+    user_dice:u8,
+    computer_dice:u8,
+    winner:Winner
+}
+
 
 
 
@@ -16,23 +29,44 @@ fn roll_dice() -> u8 {
     dice
 }
 
-fn start_game() {
+fn start_game() ->(u8, u8, Winner) {
         
     let user_dice = roll_dice();
     let computer_dice = roll_dice();
     println!("You rolled {}, Computer rolled {}", user_dice, computer_dice);
     if user_dice > computer_dice {
         println!("You won!");
-    } if user_dice == computer_dice {
+        (user_dice, computer_dice, Winner::USER)
+    } else if user_dice == computer_dice {
         println!("It was a tie");
-    }
-    if user_dice < computer_dice {
+        (user_dice, computer_dice, Winner::DRAW)
+    }else  {
         println!("You lost, Shame!!!!!!");
+        (user_dice, computer_dice, Winner::COMPUTER)
     }
 }
+impl Result {
+    fn display_final_result(result: &Vec<Result>) {
+        let mut user_final_result :u8 = 0;
+        let mut computer_final_result :u8 = 0;
+        let mut draws: u8 = 0;
+        for (_i, res) in result.iter().enumerate() {
+            match &res.winner {
+                Winner::USER=> { user_final_result += 1},
+                Winner::COMPUTER=>{computer_final_result += 1},
+                _=>(draws += 1)
+            }
+        }
+        println!("You have {} wins, the Computer won {} times, and there were {} Draws", user_final_result, computer_final_result, draws);
+    }
+}
+
+
 fn main() {
     println!("Play a Dice game with a computer!");
     let mut count = 0;
+    let mut result_array:Vec<Result> = Vec::new();
+
     loop {
 
         if count == 3 {
@@ -44,7 +78,21 @@ fn main() {
          let roll = roll.trim().parse().expect("Please enter a char");
 
           match roll {
-              'y'|'Y' => start_game(),
+              'y'|'Y' => {
+                            let (user, computer, roll_result) = start_game();
+                            let roll_result = match roll_result {
+                                Winner::USER => Winner::USER,
+                                Winner::COMPUTER=>Winner::COMPUTER,
+                                Winner::DRAW=>Winner::DRAW
+                            };
+                            result_array.push(Result 
+                                                    { 
+                                                        user_dice: user, 
+                                                        computer_dice: computer, 
+                                                        winner:  roll_result
+                                                    }
+                                                )        
+                        },
               'n'|'N'=> {
                         println!("Please click (y or Y) to roll a dice");
                             continue;
@@ -57,5 +105,8 @@ fn main() {
     
         count += 1;
     }   
+
+    println!("End game.");
+    Result::display_final_result(&result_array);
 
 }
